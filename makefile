@@ -16,5 +16,5 @@ clean:
 		rm -f *.o ${PROGRAM} your.output*
 
 splint:
-		splint -warnposix +trytorecover -weak ${PROGRAM}.c
+		splint -warnposix +trytorecover -weak ${PROGRAM}.cpp
 
