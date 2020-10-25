@@ -3,8 +3,9 @@
 // Mathew Punsalan 
 
 #include "dissem.h"
-
+#include "OpCode.h"
 using namespace std;
+
 // need opcode class to store data structure provided
 // store opcodes into data structure
 int main(int argc, char const *argv[])

@@ -3,17 +3,20 @@
 # Mathew Punsalan
 
 PROGRAM = dissem
-CC = gcc
-CFLAGS = -g
+CC = g++
+CFLAGS = -c
 
-${PROGRAM}:	${PROGRAM}.o 
-		${CC} ${PROGRAM}.o -o ${PROGRAM}
+${PROGRAM}:	${PROGRAM}.o OpCode.o
+		${CC} ${PROGRAM}.o OpCode.o -o ${PROGRAM}
 
 
 ${PROGRAM}.o:	${PROGRAM}.h 
 
+OpCode.o: OpCode.cpp
+	$(CC) $(CFLAGS) OpCode.cpp
+
 clean:
-		rm -f *.o ${PROGRAM} your.output*
+		rm -f *.o ${PROGRAM}
 
 splint:
 		splint -warnposix +trytorecover -weak ${PROGRAM}.cpp
