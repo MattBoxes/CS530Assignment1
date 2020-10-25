@@ -5,3 +5,11 @@ James Nguyen
 Jonathan Giang
 
 SIC/XE Dissassembler in C++
+just type "make" in cmd and it should make the dissem exe and u can just pass arugments like dissem < file1 file2
+
+it should work so if u typed
+make
+dissem  .\sample.lis.txt .\sample.sic.txt
+
+should print correct output
+

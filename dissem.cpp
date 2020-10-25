@@ -10,10 +10,11 @@ using namespace std;
 // store opcodes into data structure
 int main(int argc, char const *argv[])
 {
-    if(argc != 2){
+    if(argc != 3){
         cout << "Need 2 file arguments" << endl;
         exit(1);
     }
+    cout << "two files successfully loaded in!" << endl;
     //TODO:
     // open files and check for correct format using ifstream, exit if not
     // write file contents to vector data structure
