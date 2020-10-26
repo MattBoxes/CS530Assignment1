@@ -3,21 +3,19 @@
 # Mathew Punsalan
 
 PROGRAM = dissem
-CC = g++
-CFLAGS = -c
+CXX = g++
+CXXFLAGS=-std=c++11 -g
 
-${PROGRAM}:	${PROGRAM}.o OpCode.o
-		${CC} ${PROGRAM}.o OpCode.o -o ${PROGRAM}
+${PROGRAM}:	disassembler.o OpCode.o
+		${CXX} disassembler.o OpCode.o -o ${PROGRAM}
 
 
-${PROGRAM}.o:	${PROGRAM}.h 
+disassembler.o:	disassembler.cpp disassembler.h OpCode.h
 
-OpCode.o: OpCode.cpp
-	$(CC) $(CFLAGS) OpCode.cpp
+OpCode.o: OpCode.cpp OpCode.h
+	
 
 clean:
 		rm -f *.o ${PROGRAM}
-
 splint:
-		splint -warnposix +trytorecover -weak ${PROGRAM}.cpp
-
+		splint -warnposix +trytorecover -weak disassembler.cpp

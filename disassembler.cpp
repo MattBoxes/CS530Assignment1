@@ -2,7 +2,7 @@
 // Assignment 1
 // Mathew Punsalan 
 
-#include "dissem.h"
+#include "disassembler.h"
 #include "OpCode.h"
 using namespace std;
 
