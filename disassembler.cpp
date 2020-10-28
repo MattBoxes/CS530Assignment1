@@ -3,15 +3,15 @@
 // Mathew Punsalan 
 
 #include "disassembler.h"
-#include "OpCode.h"
 using namespace std;
 
 // need opcode class to store data structure provided
 // store opcodes into data structure
 int main(int argc, char const *argv[])
 {
-    if(argc != 3){
-        cout << "Need 2 file arguments" << endl;
+    if(argc != 2){
+        cout << "Incorrect Usage: Need two  file arguments " << endl;
+        cout << "Correct Usage: dissem <filename>.obj <filename>.sys" << endl;
         exit(1);
     }
     cout << "two files successfully loaded in!" << endl;

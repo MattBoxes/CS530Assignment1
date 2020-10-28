@@ -9,11 +9,9 @@ CXXFLAGS=-std=c++11 -g
 ${PROGRAM}:	disassembler.o OpCode.o
 		${CXX} disassembler.o OpCode.o -o ${PROGRAM}
 
-
 disassembler.o:	disassembler.cpp disassembler.h OpCode.h
 
 OpCode.o: OpCode.cpp OpCode.h
-	
 
 clean:
 		rm -f *.o ${PROGRAM}
