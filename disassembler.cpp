@@ -1,6 +1,8 @@
 // CS 570 Fall 2020 
 // Assignment 1
 // Mathew Punsalan 
+// James Nguyen
+// Jonothan Giang
 
 #include "disassembler.h"
 #include "OpCode.h"
