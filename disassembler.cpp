@@ -7,7 +7,44 @@
 #include "disassembler.h"
 #include "OpCode.h"
 using namespace std;
+ifstream object_Stream;
+ifstream sym_Stream;
+ofstream sic_Stream;
+ofstream lis_Stream;
+#include <vector>
 
+void Dissem::load_Data(){
+    string file_Line;
+
+    while(object_Stream.good()){
+        getline(object_Stream, file_Line);
+        object_Storage.push_back(file_Line);
+    }
+
+    while (sym_Stream.good()){
+        getline(sym_Stream, file_Line);
+        sym_Storage.push_back(file_Line);
+    }
+
+    int i = 2;
+    for(i = 2; i < sym_Storage.size() - 1; i++){
+         if(sym_Storage[i][0] != (char)NULL){
+            sym_Name.push_back(sym_Storage[i].substr(0,6));
+            sym_Value.push_back((unsigned int)strtol(sym_Storage[i].substr(8,6).c_str(), NULL, 16));
+            sym_Flag.push_back((unsigned int)strtol(sym_Storage[i].substr(16,1).c_str(), NULL, 16));
+         }
+         else{
+            i += 3;
+            break;
+         }
+    }
+
+    for(int j = i; j < sym_Storage.size() - 1; j++){
+        literal_Name.push_back(sym_Storage[j].substr(8,6));
+        literal_Length.push_back((int)strtol(sym_Storage[i].substr(19,1).c_str(), NULL, 16));
+        literal_Address.push_back((unsigned int)strtol(sym_Storage[i].substr(24,1).c_str(), NULL, 16));
+    }
+}
 // need opcode class to store data structure provided
 // store opcodes into data structure
 int main(int argc, char *argv[])
@@ -87,6 +124,40 @@ int main(int argc, char *argv[])
     // add to outstream structure for writing out
 
 }
+
+
+void Dissem::open_File(char *object_File){
+    object_Stream.open(object_File);
+    if(!object_Stream.is_open()){
+        cout << " '.obj' file not found" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string sym_File = object_File;
+    sym_File.erase(sym_File.find_last_of('.'));
+    sym_File.append(".sym");
+    sym_Stream.open(sym_File.c_str());
+    if(!sym_Stream.is_open()){
+        cout << " '.sym' file not found" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string sic_File = object_File;
+    sic_File.erase(sym_File.find_last_of("."));
+    sic_File.append(".sic");
+    sic_Stream.open(sic_File.c_str());
+
+    string lis_File = object_File;
+    lis_File.erase(lis_File.find_last_of("."));
+    lis_File.append(".lis");
+    lis_Stream.open(lis_File.c_str());
+
+    load_Data();
+
+    object_Stream.close();
+    sym_Stream.close();
+}
+
 
 //opcode class
 // public:
