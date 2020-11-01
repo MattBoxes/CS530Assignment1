@@ -1,7 +1,9 @@
 #include "OpCode.h"
+#include <iomanip>
+
 class Dissem{
 public:
-    void open_File(char *object_File);
+    void open_File(char *object_File, char *sym_File);
 
 private:
     void load_Data();

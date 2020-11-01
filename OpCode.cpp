@@ -20,6 +20,7 @@ struct opCode {
     int format; //format 3 refers to format 3 or format 4
 };
 
+
 const struct opCode opCodeTable [] = {
     {"ADD", 0x18, 3},  {"ADDF", 0x58, 3},   {"ADDR", 0x90, 2},   {"AND", 0x40, 3},  {"CLEAR", 0xB4, 2},
     {"COMP", 0x28, 3}, {"COMPF", 0x88, 3},  {"COMPR", 0xA0, 2},  {"DIV", 0x24, 3},  {"DIVF", 0x64, 3},
@@ -34,6 +35,7 @@ const struct opCode opCodeTable [] = {
     {"SUB", 0x1C, 3},  {"SUBF", 0x5C, 3},   {"SUBR", 0x94, 2},   {"SVC", 0xB0, 2},  {"TD", 0xE0, 3},
     {"TIO", 0xF8, 1},  {"TIX", 0x2C, 3},    {"TIXR", 0xB8, 2},   {"WD", 0xDC, 3}
 };
+
 
 bool OpCode::getBit(int input, int position) {
     return ((input >> position) & 1);
