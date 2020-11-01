@@ -143,6 +143,12 @@ int main(int argc, char *argv[])
     // convert stored vector data into output files
 }
 
+string Dissem::op_Name(OpCode code, int opCode){
+    string operand_Name = code.getOpName(opCode);
+    return operand_Name;
+}
+
+
 //Open files from cmd line arguments, store data, create output files
 void Dissem::open_File(char *object_File, char *sym_File)
 {
@@ -165,8 +171,8 @@ void Dissem::open_File(char *object_File, char *sym_File)
     sym_Stream.close();
 }
 
-void Dissem::analyze_Format_1(OpCode code, int opCode, int row, int current){
-    string op_Name = code.getOpName(opCode);
+void Dissem::analyze_Format_1(string op_Name, int row, int current){
+//string op_Name = code.getOpName(opCode);
 
     for(int i = 0; i < sym_Value.size() - 1; i++){
         if(current_Address == sym_Value[i]){
@@ -190,8 +196,9 @@ void Dissem::analyze_Format_1(OpCode code, int opCode, int row, int current){
         }
     }
 }
-void Dissem::analyze_Format_2(OpCode code, int opCode, int row, int current){
-    string op_Name = code.getOpName(opCode);
+
+
+void Dissem::analyze_Format_2(string op_Name, int row, int current){
 
     for(int i = 0; i < sym_Value.size() - 1; i++){
         if(current_Address == sym_Value[i]){
@@ -284,8 +291,8 @@ void Dissem::analyze_Format_2(OpCode code, int opCode, int row, int current){
             break;
     }
 }
-int Dissem::analyze_Format_3(OpCode code, int opCode, int row, int current){
-    string op_Name = code.getOpName(opCode);
+int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
+    //string op_Name = code.getOpName(opCode);
     bool nixbpe[6];
     int flag_Section = (int)strtol(object_Storage[row].substr(current + 1, 2).c_str(), NULL, 16);
 
@@ -403,15 +410,16 @@ int Dissem::instruction_Analyzer(int row, int current){
     int opCode = (int)strtol(object_Storage[row].substr(current, 2).c_str(), NULL, 16);
     int instruction_Length = code.getOpFormat(opCode);
     lis_Stream << setfill('0') << setw(4) << right << current_Address << setfill(' ') << "  ";     //print current address in listing file
+    string operand_Name = op_Name(code, opCode);
     switch (instruction_Length) {
         case 1:
-            analyze_Format_1(code, opCode, row, current);
+            analyze_Format_1(operand_Name, row, current);
             break;
         case 2:
-            analyze_Format_2(code, opCode, row, current);
+            analyze_Format_2(operand_Name, row, current);
             break;
         case 3:
-            instruction_Length = analyze_Format_3(code, opCode, row, current);
+            instruction_Length = analyze_Format_3(operand_Name, code, row, current);
             break;
         default:
             break;

@@ -18,10 +18,10 @@ private:
     vector<string> literal_Name;
     vector<int> literal_Length;
     vector<unsigned int> literal_Address;
-
-    void analyze_Format_1(OpCode code, int opCode, int row, int current);
-    void analyze_Format_2(OpCode code, int opCode, int row, int current);
-    int analyze_Format_3(OpCode code, int opCode, int row, int current);
+string op_Name(OpCode code, int opCode);
+void analyze_Format_1(string op_Name, int row, int current);
+void analyze_Format_2(string op_Name, int row, int current);
+int analyze_Format_3(string op_Name, OpCode code, int row, int current);
     unsigned int current_Address;
     unsigned int base_Address;
     vector<unsigned int> literal_Addresses;
