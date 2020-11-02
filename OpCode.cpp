@@ -11,7 +11,7 @@ using namespace std;
 struct opCode {
     string name;
     int opCode;
-    int format; //format 3 refers to format 3 or format 4
+    int format; //format 3 = 3 or 4
 };
 
 
@@ -39,12 +39,14 @@ string OpCode::getOpName(int opCode) {
     for (int i = 0; i < OP_TABLE_SIZE; i++)
         if (opCodeTable[i].opCode == opCode)
             return opCodeTable[i].name;
-    int newOpCode = opCode & 0xFC;      //bit mask to get the first 6 bits
+    //use 0xFC for bitmask to get first bits
+    int newOpCode = opCode & 0xFC;      
     return getOpName(newOpCode);
 }
 
 int OpCode::getOpFormat(int opCode) {
-    opCode = opCode & 0xFC;      //bit mask to get the first 6 bits
+    //use 0xFC for bitmask to get first bits
+    opCode = opCode & 0xFC;      
     for (int i = 0; i < OP_TABLE_SIZE; i++)
         if (opCodeTable[i].opCode == opCode)
             return opCodeTable[i].format;

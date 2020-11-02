@@ -1,6 +1,9 @@
 # makefile for SIC/XE dissassembler CS570
-# Fall 2020 
+# CS 570 Fall 2020
+# Assignment 1
 # Mathew Punsalan
+# James Nguyen
+# Jonothan Giang
 
 PROGRAM = dissem
 CXX = g++

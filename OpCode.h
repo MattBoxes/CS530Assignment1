@@ -1,3 +1,8 @@
+// CS 570 Fall 2020
+// Assignment 1
+// Mathew Punsalan
+// James Nguyen
+// Jonothan Giang
 #ifndef __a2__C_____OpCode__
 #define __a2__C_____OpCode__
 
