@@ -1,14 +1,8 @@
-/*
- Sami Badra: masc0673
- Genaro Orodio, masc0633
- Daniel Silva, masc0624
- 
- CS 530, Spring 2015
- Assignment #2, disassembler
- FILE: OpCode.cpp
- 
- Copyright (c) 2015 Sami Badra. All rights reserved.
- */
+// CS 570 Fall 2020
+// Assignment 1
+// Mathew Punsalan
+// James Nguyen
+// Jonothan Giang
 
 
 #include "OpCode.h"

@@ -1,15 +1,28 @@
 CS 530 Assignment 1 Fall2020
 Group Members:
-Mathew Punsalan
-James Nguyen
+Mathew Punsalan cssc2822
+James Nguyen cssc2814 (files will be under this account)
 Jonathan Giang
 
-SIC/XE Dissassembler in C++
-just type "make" in cmd and it should make the dissem exe and u can just pass arugments like dissem < file1 file2
+Files: 	disassembler.cpp, disassembler.h, disassembler.o, dissem.exe, make.exe, makefile, objtest.lis, 
+	objtest.obj, objtest.sic, objtest.sym, OpCode.cpp, OpCode.h, OpCode.o, README, sample-obj.txt, sample.lis.txt, 
+	sample.sic.txt, sample.sym.txt
 
-it should work so if u typed
-make
-dissem  .\sample.lis.txt .\sample.sic.txt
+Compile Instructions: 	Run makefile
+Operating Instructions: dissem .\objtest.obj .\objtest.lis
 
-should print correct output
+The main function of the program is disassembler.cpp. This function will load in two files: the objtest.obj and objtest.lis.
+	- .obj file contains the object code
+	- .sym file contains both symtab and littab
+		- symtab describes each symbol within a program such as name, address and flag address.
+		- littab is the literal table that describes the literal: name, length, and address.
 
+The program will output objtest.lis:
+	- .lis file: contains the assembly source code which was formed from both the .obj and .sym files
+
+Instructions:
+	1) Copy all files into the same local directory.
+	2) type "make" and enter to compile the program
+	3) type "dissem .\objtest.obj .\objtest.lis" and enter
+	4) the program will output a .lis file in the same directory
+	
