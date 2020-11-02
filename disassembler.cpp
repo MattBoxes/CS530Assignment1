@@ -308,8 +308,8 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
             break;
         }
         else if(i + 1 >= sym_Value.size() - 1){
-            sic_Stream << " ";
-            lis_Stream << " ";
+            sic_Stream << "        ";
+            lis_Stream << "        ";
         }
     }
 
@@ -402,6 +402,9 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
             }
         }
     }
+
+
+
     lis_Stream << right << setfill('0') << setw(2 * (3 + nixbpe[5])) << instruction << setfill(' ') << endl;
     return (3+nixbpe[5]);
 }
@@ -416,7 +419,7 @@ int Dissem::instruction_Analyzer(int row, int current){
             analyze_Format_1(operand_Name, row, current);
             break;
         case 2:
-            analyze_Format_2(operand_Name, row, current);
+            analyze_Format_2(operand_Name, row, current); 
             break;
         case 3:
             instruction_Length = analyze_Format_3(operand_Name, code, row, current);
