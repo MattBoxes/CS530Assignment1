@@ -13,38 +13,46 @@ ofstream sic_Stream;
 ofstream lis_Stream;
 #include <vector>
 
+
+// function for reading files and storing code into a symbol table and object code table
 void Dissem::load_Data()
 {
-    string file_Line;
 
+    string file_Line;
+    // get obj file line by line and store into vector
     while (object_Stream.good())
     {
         getline(object_Stream, file_Line);
         object_Storage.push_back(file_Line);
     }
-
+    // get sym file line by line and store into vector
     while (sym_Stream.good())
     {
         getline(sym_Stream, file_Line);
         sym_Storage.push_back(file_Line);
     }
 
+    //loop through stored symbols and store each value,name, and flag for format into a vector
     int i = 2;
     for (i = 2; i < sym_Storage.size() - 1; i++)
-    {
+    {   
+        // while symbols stored is not null push into vector
         if (sym_Storage[i][0] != (char)NULL)
         {
             sym_Name.push_back(sym_Storage[i].substr(0, 6));
             sym_Value.push_back((unsigned int)strtol(sym_Storage[i].substr(8, 6).c_str(), NULL, 16));
             sym_Flag.push_back((unsigned int)strtol(sym_Storage[i].substr(16, 1).c_str(), NULL, 16));
         }
+
+        // else move ahead 3 indexes since symbols are stored in vector as 3 strings for name,value, and format flag
         else
         {
             i += 3;
             break;
         }
-    }
 
+    }
+    // loop through stored symbols and check for literals and push into stored literals vector
     for (int j = i; j < sym_Storage.size() - 1; j++)
     {
         literal_Name.push_back(sym_Storage[j].substr(8, 6));
@@ -52,8 +60,8 @@ void Dissem::load_Data()
         literal_Address.push_back((unsigned int)strtol(sym_Storage[i].substr(24, 1).c_str(), NULL, 16));
     }
 }
-// need opcode class to store data structure provided
-// store opcodes into data structure
+
+
 int main(int argc, char *argv[])
 {
     string inFile1;
@@ -96,13 +104,15 @@ int main(int argc, char *argv[])
     ifstream objFile(argv[1], ios::in);
     ifstream symFile(argv[2], ios::in);
 
-    // obj check
+    // check for .obj file
     if (!objFile)
     {
         cout << "Incorrect Usage: obj file not found" << endl;
         cout << "Correct Usage: dissem <filename>.obj <filename>.sym" << endl;
         exit(1);
     }
+
+    //check if .obj file is empty
     if (objFile.peek() == istream::traits_type::eof())
     {
         cout << "File " << inFile1 << " is empty" << endl
@@ -110,14 +120,15 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    // sym check
+
+    // check for .sym file
     if (!symFile)
     {
         cout << "Incorrect Usage: sym file not found" << endl;
         cout << "Correct Usage: dissem <filename>.obj <filename>.sym" << endl;
         exit(1);
     }
-
+    // check if .sym file is empty
     if (symFile.peek() == istream::traits_type::eof())
     {
         cout << "File " << inFile2 << " is empty" << endl
@@ -126,35 +137,58 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // .obj and .sym file found, disassemble
     cout << inFile1 << " and " << inFile2 << " succesfully loaded" << endl;
-
-    //TODO remove .sym from inFile2 and append .sic correctly
-    //at this point all error checking for files is done, can read and write now
-
     Dissem *dissassembler = new Dissem;
     dissassembler->open_File(argv[1], argv[2]);
     dissassembler->disassemble();
-    //ofstream sic_Stream((inFile2 + ".sic").c_str());
-    //ofstream lis_Stream((inFile2 + ".lis").c_str());
+    cout << ".sic and .lis created" << endl;
 
-    //TODO:
-    // loop through checking opcodes in structure by format Header
-    // handle formats 1-4
-    // convert stored vector data into output files
 }
 
+//helper function for converting and Opcode and value to its mneomonic 
 string Dissem::op_Name(OpCode code, int opCode){
     string operand_Name = code.getOpName(opCode);
     return operand_Name;
 }
 
+// helper function to check for symbol table values when checking formats 1-4 and pushing to output stream
+void Dissem::check_Symbol(string op_Name){
+    for(int i = 0; i < sym_Value.size() - 1; i++){
+        // if current address is in the symbol table push symbol to output stream
+        if(current_Address == sym_Value[i]){
+            sic_Stream << setw(8) << left << sym_Name[i];
+            lis_Stream << setw(8) << left << sym_Name[i];
+            break;
+        }
+        // else fill with space
+        else if(i + 1 >= sym_Value.size() - 1){
+            sic_Stream << " " << setw(7) << left << op_Name;
+            lis_Stream << " " << setw(7) << left << op_Name;
+        }
+    }
+}
 
+bool Dissem::check_Literal(){
+    for(int i = 0; i < literal_Name.size(); i++){
+        if(current_Address == literal_Addresses[i]){
+            sic_Stream << setw(10) << left << literal_Name[i] << endl;
+            sic_Stream << setw(14) << right << "LTORG" << endl;
+            lis_Stream << setw(10) << left << literal_Name[i] << endl;
+            lis_Stream << setw(14) << right << "LTORG" << endl;
+            return 1;
+        }
+    }
+    return 0;
+}
 //Open files from cmd line arguments, store data, create output files
 void Dissem::open_File(char *object_File, char *sym_File)
 {
+    // open files into a stream for easier manipulation
     object_Stream.open(object_File);
     sym_Stream.open(sym_File);
 
+    // create sic and lis files
     string sic_File = object_File;
     sic_File.erase(sic_File.find_last_of("."));
     sic_File.append(".sic");
@@ -165,67 +199,32 @@ void Dissem::open_File(char *object_File, char *sym_File)
     lis_File.append(".lis");
     lis_Stream.open(lis_File.c_str());
 
+    //store file contents into vector for manipulation
     load_Data();
 
     object_Stream.close();
     sym_Stream.close();
 }
 
+// analyze an opcode for format 1 and store contents 
 void Dissem::analyze_Format_1(string op_Name, int row, int current){
-//string op_Name = code.getOpName(opCode);
+    //check for symbols and check for literals
+    check_Symbol(op_Name);
+    if(check_Literal()){return;}
 
-    for(int i = 0; i < sym_Value.size() - 1; i++){
-        if(current_Address == sym_Value[i]){
-            sic_Stream << setw(8) << left << sym_Name[i];
-            lis_Stream << setw(8) << left << sym_Name[i];
-            break;
-        }
-        else if(i + 1 >= sym_Value.size() - 1){
-            sic_Stream << " " << setw(7) << left << op_Name;
-            lis_Stream << " " << setw(7) << left << op_Name;
-        }
-    }
-
-    for(int i = 0; i < literal_Name.size(); i++){
-        if(current_Address == literal_Addresses[i]){
-            sic_Stream << setw(10) << left << literal_Name[i] << endl;
-            sic_Stream << setw(14) << right << "LTORG" << endl;
-            lis_Stream << setw(10) << left << literal_Name[i] << endl;
-            lis_Stream << setw(14) << right << "LTORG" << endl;
-            return;
-        }
-    }
 }
 
-
+// analyze an opcode for format 2 and store contents 
 void Dissem::analyze_Format_2(string op_Name, int row, int current){
+    //check for symbols and check for literals
+    check_Symbol(op_Name);
+    if(check_Literal()){return;}
 
-    for(int i = 0; i < sym_Value.size() - 1; i++){
-        if(current_Address == sym_Value[i]){
-            sic_Stream << setw(8) << left << sym_Name[i];
-            lis_Stream << setw(8) << left << sym_Name[i];
-            break;
-        }
-        else if(i + 1 >= sym_Value.size() - 1){
-            sic_Stream << " " << setw(7) << left << op_Name;
-            lis_Stream << " " << setw(7) << left << op_Name;
-        }
-    }
-
-    for(int i = 0; i < literal_Name.size(); i++){
-        if(current_Address == literal_Addresses[i]){
-            sic_Stream << setw(10) << left << literal_Name[i] << endl;
-            sic_Stream << setw(14) << right << "LTORG" << endl;
-            lis_Stream << setw(10) << left << literal_Name[i] << endl;
-            lis_Stream << setw(14) << right << "LTORG" << endl;
-            return;
-        }
-    }
-
+    
     int register_One = (int)strtol(object_Storage[row].substr(current + 2, 1).c_str(), NULL, 16);
     int register_Two = (int)strtol(object_Storage[row].substr(current + 3, 1).c_str(), NULL, 16);
 
-    switch (register_One) {           //output register name for first register operand
+    switch (register_One) {           
         case 0:
             sic_Stream << "A,";
             lis_Stream << "A,";
@@ -301,17 +300,8 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
     }
 
     unsigned int instruction = (unsigned int) strtol(object_Storage[row].substr(current, 2 * (3 + nixbpe[5])).c_str(), NULL, 16);
-    for(int i = 0; i < sym_Value.size() - 1; i++){
-        if(current_Address == sym_Value[i]){
-            sic_Stream << setw(8) << left << sym_Name[i];
-            lis_Stream << setw(8) << left << sym_Name[i];
-            break;
-        }
-        else if(i + 1 >= sym_Value.size() - 1){
-            sic_Stream << "        ";
-            lis_Stream << "        ";
-        }
-    }
+
+    check_Symbol(op_Name);
 
     for(int i = 0; i < literal_Name.size(); i++){
         if(current_Address == literal_Addresses[i]){
