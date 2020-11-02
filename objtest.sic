@@ -1,9 +1,9 @@
 SUM      START   0
 FIRST    LDX    #0
- LDA     LDA      J       J        STL    +STL      STX    +STX      TIX     TIX     COUNT    
- JLT     JLT     LOOP     
- STA    +STA     TOTAL    
- RSUB    RSUB    
+         LDA              J               +STL             +STX              TIX     COUNT    
+         JLT     LOOP     
+        +STA     TOTAL    
+         RSUB    
 COUNT    RESW    1       
 TABLE    RESW    2000    
 TABLE2   RESW    2000    

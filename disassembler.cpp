@@ -29,19 +29,19 @@ void Dissem::load_Data()
     while (sym_Stream.good())
     {
         getline(sym_Stream, file_Line);
-        sym_Storage.push_back(file_Line);
+        symbol_Storage.push_back(file_Line);
     }
 
     //loop through stored symbols and store each value,name, and flag for format into a vector
     int i = 2;
-    for (i = 2; i < sym_Storage.size() - 1; i++)
+    for (i = 2; i < symbol_Storage.size() - 1; i++)
     {   
         // while symbols stored is not null push into vector
-        if (sym_Storage[i][0] != (char)NULL)
+        if (symbol_Storage[i][0] != (char)NULL)
         {
-            sym_Name.push_back(sym_Storage[i].substr(0, 6));
-            sym_Value.push_back((unsigned int)strtol(sym_Storage[i].substr(8, 6).c_str(), NULL, 16));
-            sym_Flag.push_back((unsigned int)strtol(sym_Storage[i].substr(16, 1).c_str(), NULL, 16));
+            symbol_Name.push_back(symbol_Storage[i].substr(0, 6));
+            symbol_Value.push_back((unsigned int)strtol(symbol_Storage[i].substr(8, 6).c_str(), NULL, 16));
+            symbol_Flag.push_back((unsigned int)strtol(symbol_Storage[i].substr(16, 1).c_str(), NULL, 16));
         }
 
         // else move ahead 3 indexes since symbols are stored in vector as 3 strings for name,value, and format flag
@@ -53,11 +53,11 @@ void Dissem::load_Data()
 
     }
     // loop through stored symbols and check for literals and push into stored literals vector
-    for (int j = i; j < sym_Storage.size() - 1; j++)
+    for (int j = i; j < symbol_Storage.size() - 1; j++)
     {
-        literal_Name.push_back(sym_Storage[j].substr(8, 6));
-        literal_Length.push_back((int)strtol(sym_Storage[i].substr(19, 1).c_str(), NULL, 16));
-        literal_Address.push_back((unsigned int)strtol(sym_Storage[i].substr(24, 1).c_str(), NULL, 16));
+        literal_Name.push_back(symbol_Storage[j].substr(8, 6));
+        literal_Length.push_back((int)strtol(symbol_Storage[i].substr(19, 1).c_str(), NULL, 16));
+        literal_Address.push_back((unsigned int)strtol(symbol_Storage[i].substr(24, 1).c_str(), NULL, 16));
     }
 }
 
@@ -153,23 +153,23 @@ string Dissem::op_Name(OpCode code, int opCode){
 }
 
 // helper function to check for symbol table values when checking formats 1-4 and pushing to output stream
-void Dissem::check_Symbol(string op_Name){
-    for(int i = 0; i < sym_Value.size() - 1; i++){
+void Dissem::isSymbol(string op_Name){
+    for(int i = 0; i < symbol_Value.size() - 1; i++){
         // if current address is in the symbol table push symbol to output stream
-        if(current_Address == sym_Value[i]){
-            sic_Stream << setw(8) << left << sym_Name[i];
-            lis_Stream << setw(8) << left << sym_Name[i];
+        if(current_Address == symbol_Value[i]){
+            sic_Stream << setw(8) << left << symbol_Name[i];
+            lis_Stream << setw(8) << left << symbol_Name[i];
             break;
         }
         // else fill with space
-        else if(i + 1 >= sym_Value.size() - 1){
+        else if(i + 1 >= symbol_Value.size() - 1){
             sic_Stream << " " << setw(7) << left << op_Name;
             lis_Stream << " " << setw(7) << left << op_Name;
         }
     }
 }
 
-bool Dissem::check_Literal(){
+bool Dissem::isLiteral(){
     for(int i = 0; i < literal_Name.size(); i++){
         if(current_Address == literal_Addresses[i]){
             sic_Stream << setw(10) << left << literal_Name[i] << endl;
@@ -207,24 +207,23 @@ void Dissem::open_File(char *object_File, char *sym_File)
 }
 
 // analyze an opcode for format 1 and store contents 
-void Dissem::analyze_Format_1(string op_Name, int row, int current){
-    //check for symbols and check for literals
-    check_Symbol(op_Name);
-    if(check_Literal()){return;}
+void Dissem::check_Format_1(string op_Name, int row, int current){
+
+    isSymbol(op_Name);
+    if(isLiteral()){return;}
 
 }
 
-// analyze an opcode for format 2 and store contents 
-void Dissem::analyze_Format_2(string op_Name, int row, int current){
-    //check for symbols and check for literals
-    check_Symbol(op_Name);
-    if(check_Literal()){return;}
 
-    
+void Dissem::check_Format_2(string op_Name, int row, int current){
+
+    isSymbol(op_Name);
+    if(isLiteral()){return;}
+
     int register_One = (int)strtol(object_Storage[row].substr(current + 2, 1).c_str(), NULL, 16);
     int register_Two = (int)strtol(object_Storage[row].substr(current + 3, 1).c_str(), NULL, 16);
 
-    switch (register_One) {           
+    switch (register_One) {           //output register name for first register operand
         case 0:
             sic_Stream << "A,";
             lis_Stream << "A,";
@@ -290,7 +289,8 @@ void Dissem::analyze_Format_2(string op_Name, int row, int current){
             break;
     }
 }
-int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
+
+int Dissem::check_Format_3_4(string op_Name, OpCode code, int row, int current){
     //string op_Name = code.getOpName(opCode);
     bool nixbpe[6];
     int flag_Section = (int)strtol(object_Storage[row].substr(current + 1, 2).c_str(), NULL, 16);
@@ -300,8 +300,17 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
     }
 
     unsigned int instruction = (unsigned int) strtol(object_Storage[row].substr(current, 2 * (3 + nixbpe[5])).c_str(), NULL, 16);
-
-    check_Symbol(op_Name);
+    for(int i = 0; i < symbol_Value.size() - 1; i++){
+        if(current_Address == symbol_Value[i]){
+            sic_Stream << setw(8) << left << symbol_Name[i];
+            lis_Stream << setw(8) << left << symbol_Name[i];
+            break;
+        }
+        else if(i + 1 >= symbol_Value.size() - 1){
+            sic_Stream << "        ";
+            lis_Stream << "        ";
+        }
+    }
 
     for(int i = 0; i < literal_Name.size(); i++){
         if(current_Address == literal_Addresses[i]){
@@ -346,10 +355,10 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
         sic_Stream << setw(8) << left << op_Name;
         lis_Stream << setw(8) << left << op_Name;
         
-        for (int i = 0; i < sym_Value.size(); i++) { //insert symbol name
-            if (target_Address == sym_Value[i] && op_Name != "RSUB") {
-                sic_Stream << setw(9) << left << sym_Name[i] + (nixbpe[2] ? ",X":"") << endl;
-                lis_Stream << setw(9) << left << sym_Name[i] + (nixbpe[2] ? ",X":"");
+        for (int i = 0; i < symbol_Value.size(); i++) { //insert symbol name
+            if (target_Address == symbol_Value[i] && op_Name != "RSUB") {
+                sic_Stream << setw(9) << left << symbol_Name[i] + (nixbpe[2] ? ",X":"") << endl;
+                lis_Stream << setw(9) << left << symbol_Name[i] + (nixbpe[2] ? ",X":"");
                 break;
             }
         }
@@ -361,10 +370,10 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
     else if (nixbpe[0]) {   //indirect addressing
         sic_Stream << setw(7) << left << op_Name << "@";
         lis_Stream << setw(7) << left << op_Name << "@";
-        for (int i = 0; i < sym_Value.size(); i++) { //insert symbol name
-            if (target_Address == sym_Value[i] && op_Name != "RSUB") {
-                sic_Stream << setw(9) << left << sym_Name[i] + (nixbpe[2] ? ",X":"") << endl;
-                lis_Stream << setw(9) << left << sym_Name[i] + (nixbpe[2] ? ",X":"");
+        for (int i = 0; i < symbol_Value.size(); i++) { //insert symbol name
+            if (target_Address == symbol_Value[i] && op_Name != "RSUB") {
+                sic_Stream << setw(9) << left << symbol_Name[i] + (nixbpe[2] ? ",X":"") << endl;
+                lis_Stream << setw(9) << left << symbol_Name[i] + (nixbpe[2] ? ",X":"");
                 break;
             }
         }
@@ -380,25 +389,24 @@ int Dissem::analyze_Format_3(string op_Name, OpCode code, int row, int current){
     
     if (op_Name == "LDB") {
         base_Address = target_Address;
-        for (int i = 0; i < sym_Value.size(); i++) { //check if symbol name should be inserted
-            if (target_Address == sym_Value[i]) {
-                sic_Stream << setw(10) << left << sym_Name[i] << endl;
-                sic_Stream << setw(17) << right << "BASE    " << sym_Name[i] << endl;
-                lis_Stream << setw(9) << left << sym_Name[i];
+        for (int i = 0; i < symbol_Value.size(); i++) { //check if symbol name should be inserted
+            if (target_Address == symbol_Value[i]) {
+                sic_Stream << setw(10) << left << symbol_Name[i] << endl;
+                sic_Stream << setw(17) << right << "BASE    " << symbol_Name[i] << endl;
+                lis_Stream << setw(9) << left << symbol_Name[i];
                 lis_Stream << setw(2 * (3 + nixbpe[5])) << setfill('0') << instruction << setfill(' ') << endl;
                 lis_Stream << setfill('0') << setw(4) << right << current_Address << setfill(' ') << "  ";
-                lis_Stream << setw(17) << right << "BASE    " << sym_Name[i] << endl;
+                lis_Stream << setw(17) << right << "BASE    " << symbol_Name[i] << endl;
                 return (3 + nixbpe[5]);
             }
         }
     }
 
 
-
     lis_Stream << right << setfill('0') << setw(2 * (3 + nixbpe[5])) << instruction << setfill(' ') << endl;
     return (3+nixbpe[5]);
 }
-int Dissem::instruction_Analyzer(int row, int current){
+int Dissem::instruction_Check(int row, int current){
     OpCode code = *new OpCode;
     int opCode = (int)strtol(object_Storage[row].substr(current, 2).c_str(), NULL, 16);
     int instruction_Length = code.getOpFormat(opCode);
@@ -406,20 +414,20 @@ int Dissem::instruction_Analyzer(int row, int current){
     string operand_Name = op_Name(code, opCode);
     switch (instruction_Length) {
         case 1:
-            analyze_Format_1(operand_Name, row, current);
+            check_Format_1(operand_Name, row, current);
             break;
         case 2:
-            analyze_Format_2(operand_Name, row, current); 
+            check_Format_2(operand_Name, row, current); 
             break;
         case 3:
-            instruction_Length = analyze_Format_3(operand_Name, code, row, current);
+            instruction_Length = check_Format_3_4(operand_Name, code, row, current);
             break;
         default:
             break;
     }
     return (instruction_Length * 2);
 }
-void Dissem::header_Record_Analyzer(int row) {
+void Dissem::header_Check(int row) {
     string final_Line;
     string prog_Name = object_Storage[row].substr(1, 6);
     stringstream ss;
@@ -431,49 +439,49 @@ void Dissem::header_Record_Analyzer(int row) {
     lis_Stream << setbase(16) << uppercase << setw(4) << setfill('0') << current_Address << setfill(' ') << "  ";
     lis_Stream << setw(9) << left << prog_Name << "START   " << address <<endl;
 }
-void Dissem::text_Record_Analyzer(int row) {
+void Dissem::text_Check(int row) {
     int textLength = (int)strtol(object_Storage[row].substr(7, 2).c_str(), NULL, 16);
     int current = 9;
     while (current < (2 * textLength + 9)) {
-        int object_Size = instruction_Analyzer(row, current);
+        int object_Size = instruction_Check(row, current);
         current_Address += (object_Size/2);
         current += object_Size;
     }
-    for (int i = 0; i < sym_Value.size(); i++) { //check for assembler directives
-        if (current_Address <= sym_Value[i]) {    //symbol was not used in program, use "RESW" or "RESB" to allocate memory
+    for (int i = 0; i < symbol_Value.size(); i++) { //check for assembler directives
+        if (current_Address <= symbol_Value[i]) {    //symbol was not used in program, use "RESW" or "RESB" to allocate memory
             lis_Stream << setfill('0') << setw(4) << right << current_Address << setfill(' ') << "  ";
             if ((current_Address % 3) == 0) {  // if divisible by 3, reserve word
-                sic_Stream << setw(8) << left << sym_Name[i] << " RESW    ";
-                lis_Stream << setw(8) << left << sym_Name[i] << " RESW    ";
-                if (i+1 < sym_Value.size()) {
-                    sic_Stream << setw(8) << left << (sym_Value[i+1]-sym_Value[i])/3 << endl;
-                    lis_Stream << setbase(10) << setw(8) << left << (sym_Value[i + 1] - sym_Value[i])/3 << setbase(16) << endl;
-                    current_Address +=(sym_Value[i + 1] - sym_Value[i]);
+                sic_Stream << setw(8) << left << symbol_Name[i] << " RESW    ";
+                lis_Stream << setw(8) << left << symbol_Name[i] << " RESW    ";
+                if (i+1 < symbol_Value.size()) {
+                    sic_Stream << setw(8) << left << (symbol_Value[i+1]-symbol_Value[i])/3 << endl;
+                    lis_Stream << setbase(10) << setw(8) << left << (symbol_Value[i + 1] - symbol_Value[i])/3 << setbase(16) << endl;
+                    current_Address +=(symbol_Value[i + 1] - symbol_Value[i]);
                 }
                 else {
-                    sic_Stream << setw(8) << left << (prog_Length-sym_Value[i])/3 << endl;
-                    lis_Stream << setbase(10) << setw(8) << left << (prog_Length - sym_Value[i])/3 << setbase(16) << endl;
-                    current_Address += (prog_Length-sym_Value[i]);
+                    sic_Stream << setw(8) << left << (prog_Length-symbol_Value[i])/3 << endl;
+                    lis_Stream << setbase(10) << setw(8) << left << (prog_Length - symbol_Value[i])/3 << setbase(16) << endl;
+                    current_Address += (prog_Length-symbol_Value[i]);
                 }
             }
             else {
-                sic_Stream << setw(8) << left << sym_Name[i] << " RESB    ";
-                lis_Stream << setw(8) << left << sym_Name[i] << " RESB    ";
-                if (i+1 < sym_Value.size()) {
-                    sic_Stream << setw(8) << left << (sym_Value[i + 1] - sym_Value[i]) << endl;
-                    lis_Stream << setbase(10) << setw(8) << left << (sym_Value[i + 1] - sym_Value[i]) << setbase(16) << endl;
-                    current_Address += (sym_Value[i + 1] - sym_Value[i])/3;
+                sic_Stream << setw(8) << left << symbol_Name[i] << " RESB    ";
+                lis_Stream << setw(8) << left << symbol_Name[i] << " RESB    ";
+                if (i+1 < symbol_Value.size()) {
+                    sic_Stream << setw(8) << left << (symbol_Value[i + 1] - symbol_Value[i]) << endl;
+                    lis_Stream << setbase(10) << setw(8) << left << (symbol_Value[i + 1] - symbol_Value[i]) << setbase(16) << endl;
+                    current_Address += (symbol_Value[i + 1] - symbol_Value[i])/3;
                 }
                 else {
-                    sic_Stream << setw(8) << left << (prog_Length - sym_Value[i]) << endl;
-                    lis_Stream << setbase(10) << setw(8) << left << (prog_Length - sym_Value[i]) << setbase(16) << endl;
-                    current_Address += (prog_Length-sym_Value[i])/3;
+                    sic_Stream << setw(8) << left << (prog_Length - symbol_Value[i]) << endl;
+                    lis_Stream << setbase(10) << setw(8) << left << (prog_Length - symbol_Value[i]) << setbase(16) << endl;
+                    current_Address += (prog_Length-symbol_Value[i])/3;
                 }
             }
         }
     }
 }
-void Dissem::modify_Record_Analyzer(int row) {
+void Dissem::modify_Check(int row) {
     unsigned int modify_Address = (unsigned int)strtol(object_Storage[row].substr(1, 6).c_str(), NULL, 16);
     int modLength = (int)strtol(object_Storage[row].substr(7, 2).c_str(), NULL, 16);
     int i = 0;
@@ -492,12 +500,12 @@ void Dissem::modify_Record_Analyzer(int row) {
     int position = 2 * (modify_Address - address) + 10;
     object_Storage[i][position] += prog_Length;
 }
-void Dissem::end_Record_Analyzer(int row) {
+void Dissem::end_Check(int row) {
     unsigned int endAddress = (unsigned int)strtol(object_Storage[row].substr(1, 6).c_str(), NULL, 16);
-    for (int i = 0; i < sym_Value.size(); i++) //check the symbol table for address of first instruction
-        if (endAddress == sym_Value[i]) {
-            sic_Stream << "         " << setw(8) << left << "END" << sym_Name[i] << endl;
-            lis_Stream << "               " << setw(8) << left << "END" << sym_Name[i] << endl;
+    for (int i = 0; i < symbol_Value.size(); i++) //check the symbol table for address of first instruction
+        if (endAddress == symbol_Value[i]) {
+            sic_Stream << "         " << setw(8) << left << "END" << symbol_Name[i] << endl;
+            lis_Stream << "               " << setw(8) << left << "END" << symbol_Name[i] << endl;
             break;
         }
 }
@@ -505,16 +513,16 @@ void Dissem::disassemble() {
     for (int i = 0; i < object_Storage.size(); i++) {
         switch (object_Storage[i][0]) {
             case 'H':
-                header_Record_Analyzer(i);
+                header_Check(i);
                 break;
             case 'T':
-                text_Record_Analyzer(i);
+                text_Check(i);
                 break;
             case 'M':
-                modify_Record_Analyzer(i);
+                modify_Check(i);
                 break;
             case 'E':
-                end_Record_Analyzer(i);
+                end_Check(i);
                 break;
             default:
                 break;
